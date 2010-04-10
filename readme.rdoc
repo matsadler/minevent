@@ -1,0 +1,19 @@
+=Minevent
+
+Minevent is a very small evented IO library for Ruby, written in Ruby. It's designed to feel just like using part of the standard library, and also influenced by Node.js.
+
+Here's an example echo server.
+
+  require 'minevent'
+  
+  server = Minevent::TCPServer.new("localhost", 7000)
+  
+  server.add_listener(:connection) do |connection|
+    connection.add_listener(:data) do |data|
+      connection.puts(data)
+    end
+  end
+  
+  Minevent::Loop.run
+
+Currently it's only really a toy/learning exercise, but hopefully it will evolve in to something you can do real work with.
