@@ -1,4 +1,5 @@
-require "#{File.dirname(__FILE__)}/loop"
+libs = %W{buffer loop}
+libs.each {|lib| require "#{File.dirname(__FILE__)}/#{lib}"}
 require 'rubygems'
 require 'events'
 
@@ -6,13 +7,11 @@ module Minevent
   class BaseIO < Events::EventEmitter
     
     attr_reader :real # :nodoc:
-    attr_accessor :record_separator
     
     def initialize(real)
       @real = real
       @write_queue = []
-      @read_buffer = ""
-      @record_separator = $/
+      self.record_separator = $/
       Minevent::Loop.add(self)
     end
     
@@ -22,18 +21,26 @@ module Minevent
       instance
     end
     
+    def record_separator
+      @read_buffer.record_separator
+    end
+    
+    def record_separator=(value)
+      current_buffer_string = @read_buffer ? @read_buffer.string : ""
+      @read_buffer = Minevent::Buffer.new(current_buffer_string, value)
+      value
+    end
+    
     def events
       [:data, :end, :error, :close]
     end
     
     def notify_readable # :nodoc:
       @read_buffer << real.read_nonblock(4096)
-      if index = @read_buffer.rindex(record_separator)
-        emit(:data, @read_buffer.slice!(0, index))
-        @read_buffer.slice!(0, record_separator.length)
-      end
+      @read_buffer.each {|data| emit(:data, data)}
     rescue EOFError
-      emit(:data, @read_buffer.slice!(0..-1)) unless @read_buffer.empty?
+      @read_buffer.end
+      @read_buffer.each {|data| emit(:data, data)}
       emit(:end)
       close
     end
