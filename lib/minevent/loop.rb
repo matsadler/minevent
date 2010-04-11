@@ -21,14 +21,13 @@ module Minevent
         yield if block_given?
         while connections.find(&:active?)
           reals = connections.map(&:real)
-          readable, writeable, errored = if connections.find(&:pending_write?)
-            select(reals, reals, reals, timeout)
+          readable, writeable = if connections.find(&:pending_write?)
+            select(reals, reals, nil, timeout)
           else
-            select(reals, nil, reals, timeout)
+            select(reals, nil, nil, timeout)
           end
           readable.each {|r| wrapper(r).notify_readable} if readable
           writeable.each {|w| wrapper(w).notify_writeable} if writeable
-          errored.each {|e| wrapper(e).notify_errored} if errored
           collect_garbage
         end
       end

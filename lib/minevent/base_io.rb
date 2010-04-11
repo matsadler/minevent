@@ -56,11 +56,6 @@ module Minevent
       if @closing then real_close else raise end
     end
     
-    def notify_errored # :nodoc:
-      emit(:error)
-      close
-    end
-    
     def write(data)
       string = data.to_s
       @write_queue.push(string)
