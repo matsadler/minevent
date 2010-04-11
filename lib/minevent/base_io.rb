@@ -92,7 +92,7 @@ module Minevent
     def real_close
       @closed = true
       Minevent::Loop.remove(self)
-      real.close
+      real.close unless real.closed?
       emit(:close)
     end
     
