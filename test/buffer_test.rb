@@ -83,21 +83,26 @@ class BufferTest < Test::Unit::TestCase
     buffer << "foo\n"
     buffer << "bar\n"
     
-    result = buffer.each
-    
     # ensure we match the current version of ruby's behaviour
-    # Array for <= 1.8.6, Enumerable::Enumerator for >= 1.8.7
-    assert_instance_of([].each.class, result)
+    # LocalJumpError for <= 1.8.6, Enumerable::Enumerator for >= 1.8.7
+    begin
+      [1].each
+      supports_each_without_block = true
+    rescue LocalJumpError
+      supports_each_without_block = false
+    end
     
-    case result
-    when Array
-      assert_equal(["foo", "bar"], result)
-    when Enumerable::Enumerator
+    if supports_each_without_block
+      result = buffer.each
+      assert_instance_of(Enumerable::Enumerator, result)
       assert_equal("foo", result.next)
       assert_equal("bar", result.next)
       assert_raise(StopIteration) {result.next}
     else
-      flunk "unrecognised class #{result.class}"
+      assert_raise(LocalJumpError) {buffer.each}
+      # 1.8.6 crazily returns an empty array with #each on an empty array
+      empty_buffer = Minevent::Buffer.new
+      assert_equal([], buffer.each)
     end
   end
   
