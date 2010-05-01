@@ -19,9 +19,9 @@ module Minevent::Loop
     
     def run(timeout=0.25)
       yield if block_given?
-      while connections.find(&:active?)
-        reals = connections.map(&:real)
-        readable, writeable = if connections.find(&:pending_write?)
+      while connections.find {|c| c.active?}
+        reals = connections.map {|c| c.real}
+        readable, writeable = if connections.find {|c| c.pending_write?}
           select(reals, reals, nil, timeout)
         else
           select(reals, nil, nil, timeout)
