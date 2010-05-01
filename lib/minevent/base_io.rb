@@ -14,8 +14,7 @@ class Minevent::BaseIO < Events::EventEmitter
     Minevent::Loop.add(self)
   end
   
-  def self.from(real)
-    instance = self.allocate
+  def self.from(real, instance=allocate)
     Minevent::BaseIO.instance_method(:initialize).bind(instance).call(real)
     instance
   end

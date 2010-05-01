@@ -7,12 +7,10 @@ class Minevent::TCPSocket < Minevent::BaseIO
   CHUNK_SIZE = 1024 * 16
   
   def initialize(host, port)
-    super(TCPSocket.new(host, port))
-    self.record_separator = RECORD_SEPARATOR
-    self.chunk_size = CHUNK_SIZE
+    self.class.from(TCPSocket.new(host, port), self)
   end
   
-  def self.from(real)
+  def self.from(real, instance=allocate)
     instance = super
     instance.record_separator = RECORD_SEPARATOR
     instance.chunk_size = CHUNK_SIZE
