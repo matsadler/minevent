@@ -1,5 +1,5 @@
+autoload :Minevent, File.dirname(__FILE__) + '/../lib/minevent'
 require 'test/unit'
-require "#{File.dirname(__FILE__)}/../lib/minevent/buffer"
 
 class BufferTest < Test::Unit::TestCase
   def test_with_one_entry

@@ -1,15 +1,13 @@
-require "#{File.dirname(__FILE__)}/base_io"
+autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
 
-module Minevent
-  class File < Minevent::BaseIO
-    
-    def initialize(fd, mode_string='r')
-      super(::File.new(fd, mode_string))
-    end
-    
-    class << self
-      alias open new
-    end
-    
+class Minevent::File < Minevent::BaseIO
+  
+  def initialize(fd, mode_string='r')
+    super(File.new(fd, mode_string))
   end
+  
+  class << self
+    alias open new
+  end
+  
 end
