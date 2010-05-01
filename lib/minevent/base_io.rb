@@ -7,11 +7,13 @@ module Minevent
   class BaseIO < Events::EventEmitter
     
     attr_reader :real # :nodoc:
+    attr_accessor :chunk_size
     
     def initialize(real)
       @real = real
       @write_queue = []
       self.record_separator = $/
+      self.chunk_size = 1024 * 4
       Minevent::Loop.add(self)
     end
     
@@ -36,7 +38,7 @@ module Minevent
     end
     
     def notify_readable # :nodoc:
-      @read_buffer << real.read_nonblock(4096)
+      @read_buffer << real.read_nonblock(chunk_size)
       @read_buffer.each {|data| emit(:data, data)}
     rescue EOFError
       @read_buffer.end
