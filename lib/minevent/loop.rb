@@ -9,10 +9,6 @@ module Minevent::Loop
     end
     alias << add
     
-    def connections
-      @connections ||= []
-    end
-    
     def remove(connection)
       garbage.add(connection)
     end
@@ -33,6 +29,10 @@ module Minevent::Loop
     end
     
     private
+    def connections
+      @connections ||= []
+    end
+    
     def wrapper(connection)
       (@real_to_wrap_cache ||= Hash.new do |hash, key|
         hash[key] = connections.find {|connect| connect.real == key}
