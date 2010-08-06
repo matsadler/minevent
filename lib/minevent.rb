@@ -8,7 +8,13 @@ module Minevent
   autoload :TCPServer, require_base + 'tcp_server'
   autoload :TCPSocket, require_base + 'tcp_socket'
   
-  def self.puts(*args)
-    (@stdout ||= Minevent::IO.from(STDOUT)).puts(*args)
+  def print; end; def printf; end; def putc; end; def puts; end # for docs
+  methods = [:print, :printf, :putc, :puts]
+  methods.each do |method|
+    define_method(method) do |*args|
+      (@stdout ||= Minevent::IO.from(STDOUT)).send(method, *args)
+    end
   end
+  module_function *methods
+  
 end
