@@ -13,6 +13,7 @@ class Minevent::Buffer
   
   def concat(data)
     string.concat(data)
+    self
   end
   alias << concat
   
