@@ -8,6 +8,7 @@ class Minevent::TCPSocket < Minevent::BaseIO
   
   def initialize(host, port)
     self.class.from(TCPSocket.new(host, port), self)
+    Minevent.defer {emit(:connect)}
   end
   
   def self.from(real, instance=allocate)

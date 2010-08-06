@@ -17,4 +17,9 @@ module Minevent
   end
   module_function *methods
   
+  module_function
+  def defer(*args, &block)
+    Minevent::Loop.defer(*args, &block)
+  end
+  
 end
