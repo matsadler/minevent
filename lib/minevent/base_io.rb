@@ -60,6 +60,11 @@ class Minevent::BaseIO < Events::EventEmitter
     string.length
   end
   
+  def <<(data)
+    write(data)
+    self
+  end
+  
   def puts(*args)
     write(args.join(record_separator) + record_separator)
   end
