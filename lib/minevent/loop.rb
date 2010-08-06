@@ -6,6 +6,7 @@ module Minevent::Loop
     
     def add(connection)
       connections.push(connection)
+      self
     end
     alias << add
     
