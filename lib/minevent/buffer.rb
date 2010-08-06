@@ -3,11 +3,12 @@ autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
 class Minevent::Buffer
   include Enumerable
   
-  attr_reader :string, :record_separator
+  attr_reader :string, :record_separator, :ended
   
   def initialize(string="", record_separator=$/)
     @string = string
     @record_separator = record_separator
+    @ended = false
   end
   
   def concat(data)
@@ -21,19 +22,16 @@ class Minevent::Buffer
   
   def entries
     collection = []
-    while index = string.index(record_separator)
-      collection.push(string.slice!(0, index))
-      string.slice!(0, record_separator.length)
+    while string.length > 0 &&
+      (index = string.index(record_separator) || (string.index(/\Z/) if ended))
+      collection.push(string.slice!(0, index + record_separator.length))
     end
     collection
   end
   alias to_a entries
   
   def end
-    i = record_separator.length
-    unless string.empty? || string.slice(-i, i) == record_separator
-      string.concat(record_separator)
-    end
-    nil
+    @ended = true
   end
+  
 end

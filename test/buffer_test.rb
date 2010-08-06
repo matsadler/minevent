@@ -6,7 +6,7 @@ class BufferTest < Test::Unit::TestCase
     buffer = Minevent::Buffer.new
     buffer << "foo\n"
     
-    assert_equal(["foo"], buffer.entries)
+    assert_equal(["foo\n"], buffer.entries)
   end
   
   def test_with_two_entries
@@ -14,7 +14,7 @@ class BufferTest < Test::Unit::TestCase
     buffer << "foo\n"
     buffer << "bar\n"
     
-    assert_equal(["foo", "bar"], buffer.entries)
+    assert_equal(["foo\n", "bar\n"], buffer.entries)
   end
   
   def test_with_partial_entry
@@ -22,7 +22,7 @@ class BufferTest < Test::Unit::TestCase
     buffer << "foo\n"
     buffer << "ba"
     
-    assert_equal(["foo"], buffer.entries)
+    assert_equal(["foo\n"], buffer.entries)
   end
   
   def test_complete_partial_entry
@@ -31,7 +31,7 @@ class BufferTest < Test::Unit::TestCase
     buffer << "ba"
     buffer << "r\n"
     
-    assert_equal(["foo", "bar"], buffer.entries)
+    assert_equal(["foo\n", "bar\n"], buffer.entries)
   end
   
   def test_end
@@ -40,7 +40,7 @@ class BufferTest < Test::Unit::TestCase
     buffer << "bar"
     buffer.end
     
-    assert_equal(["foo", "bar"], buffer.entries)
+    assert_equal(["foo\n", "bar"], buffer.entries)
   end
   
   def test_end_on_empty
@@ -55,7 +55,7 @@ class BufferTest < Test::Unit::TestCase
     buffer << "foo\n"
     buffer.end
     
-    assert_equal(["foo"], buffer.entries)
+    assert_equal(["foo\n"], buffer.entries)
   end
   
   def test_network_separator
@@ -64,7 +64,7 @@ class BufferTest < Test::Unit::TestCase
     buffer << "bar"
     buffer.end
     
-    assert_equal(["foo", "bar"], buffer.entries)
+    assert_equal(["foo\r\n", "bar"], buffer.entries)
   end
   
   def test_each
@@ -75,7 +75,7 @@ class BufferTest < Test::Unit::TestCase
     results = []
     buffer.each {|element| results.push(element)}
     
-    assert_equal(["foo", "bar"], results)
+    assert_equal(["foo\n", "bar\n"], results)
   end
   
   def test_each_without_block
@@ -95,8 +95,8 @@ class BufferTest < Test::Unit::TestCase
     if supports_each_without_block
       result = buffer.each
       assert_instance_of(Enumerable::Enumerator, result)
-      assert_equal("foo", result.next)
-      assert_equal("bar", result.next)
+      assert_equal("foo\n", result.next)
+      assert_equal("bar\n", result.next)
       assert_raise(StopIteration) {result.next}
     else
       assert_raise(LocalJumpError) {buffer.each}
@@ -111,6 +111,6 @@ class BufferTest < Test::Unit::TestCase
     buffer << "foo\n"
     buffer << "bar\n"
     
-    assert_equal(["foo", "bar"], buffer.each {})
+    assert_equal(["foo\n", "bar\n"], buffer.each {})
   end
 end
