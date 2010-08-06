@@ -65,8 +65,14 @@ class Minevent::BaseIO < Events::EventEmitter
     self
   end
   
-  def puts(*args)
-    write(args.join(record_separator) + record_separator)
+  def print; end; def printf; end; def putc; end; def puts; end # for docs
+  [:print, :printf, :putc, :puts].each do |method|
+    define_method(method) do |*args|
+      string_io = StringIO.new
+      string_io.send(method, *args)
+      write(string_io.string)
+      nil
+    end
   end
   
   def pending_write? # :nodoc:
