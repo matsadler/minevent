@@ -1,4 +1,5 @@
 autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
+require 'strscan'
 
 class Minevent::Buffer
   include Enumerable
@@ -6,13 +7,17 @@ class Minevent::Buffer
   attr_reader :string, :record_separator, :ended
   
   def initialize(string="", record_separator=$/)
-    @string = string
-    @record_separator = record_separator
+    @scanner = StringScanner.new(string)
+    if record_separator.is_a?(Regexp)
+      @record_separator = record_separator
+    else
+      @record_separator = Regexp.new(record_separator)
+    end
     @ended = false
   end
   
   def concat(data)
-    string.concat(data)
+    @scanner << data
     self
   end
   alias << concat
@@ -23,10 +28,12 @@ class Minevent::Buffer
   
   def entries
     collection = []
-    while string.length > 0 &&
-      (index = string.index(record_separator) || (string.index(/\Z/) if ended))
-      collection.push(string.slice!(0, index + record_separator.length))
+    separator = ended ? Regexp.union(record_separator, /\Z/) : record_separator
+    while !@scanner.eos? && (match = @scanner.scan_until(separator))
+      collection.push(match)
     end
+    @scanner.string.replace(@scanner.rest)
+    @scanner.reset
     collection
   end
   alias to_a entries
