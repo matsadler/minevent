@@ -3,7 +3,6 @@ autoload :TCPSocket, 'socket'
 
 class Minevent::TCPSocket < Minevent::BaseIO
   
-  RECORD_SEPARATOR = "\r\n"
   CHUNK_SIZE = 1024 * 16
   
   def initialize(host, port)
@@ -13,7 +12,6 @@ class Minevent::TCPSocket < Minevent::BaseIO
   
   def self.from(real, instance=allocate)
     instance = super
-    instance.record_separator = RECORD_SEPARATOR
     instance.chunk_size = CHUNK_SIZE
     instance
   end

@@ -31,8 +31,10 @@ class Minevent::Buffer
   end
   alias to_a entries
   
-  def end
+  def end(&block)
     @ended = true
+    each(&block) if block
+    self
   end
   
 end

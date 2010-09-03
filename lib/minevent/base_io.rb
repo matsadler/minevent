@@ -4,12 +4,11 @@ require 'events'
 
 class Minevent::BaseIO < Events::EventEmitter
   attr_reader :real # :nodoc:
-  attr_accessor :chunk_size
+  attr_accessor :chunk_size, :buffer
   
   def initialize(real)
     @real = real
     @write_queue = []
-    self.record_separator = $/
     self.chunk_size = 1024 * 4
     Minevent::Loop.add(self)
   end
@@ -20,13 +19,11 @@ class Minevent::BaseIO < Events::EventEmitter
   end
   
   def record_separator
-    @read_buffer.record_separator
+    buffer.record_separator if buffer
   end
   
   def record_separator=(value)
-    current_buffer_string = @read_buffer ? @read_buffer.string : ""
-    @read_buffer = Minevent::Buffer.new(current_buffer_string, value)
-    value
+    self.buffer = Minevent::Buffer.new(buffer ? buffer.string : "", value)
   end
   
   def events
@@ -34,11 +31,14 @@ class Minevent::BaseIO < Events::EventEmitter
   end
   
   def notify_readable # :nodoc:
-    @read_buffer << real.read_nonblock(chunk_size)
-    @read_buffer.each {|data| emit(:data, data)}
+    if buffer
+      buffer << real.read_nonblock(chunk_size)
+      buffer.each {|data| emit(:data, data)}
+    else
+      emit(:data, real.read_nonblock(chunk_size))
+    end
   rescue EOFError
-    @read_buffer.end
-    @read_buffer.each {|data| emit(:data, data)}
+    buffer.end {|data| emit(:data, data)} if buffer
     emit(:end)
     close
   end
