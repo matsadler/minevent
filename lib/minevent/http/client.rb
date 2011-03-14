@@ -1,8 +1,8 @@
-autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
+autoload :Minevent, File.dirname(__FILE__) + '/../../minevent'
 require 'rubygems'
 require 'http_tools'
 
-class Minevent::HTTP
+class Minevent::HTTP::Client
   attr_accessor :keepalive
   alias keepalive? keepalive
   
@@ -26,7 +26,7 @@ class Minevent::HTTP
     parser.force_no_body = !response_has_body
     
     response = nil
-    parser.on(:status) {|s, m| response = Minevent::HTTPResponse.new(s, m)}
+    parser.on(:status) {|s, m| response = Minevent::HTTP::Response.new(s, m)}
     parser.on(:headers) {|headers| response.headers = headers}
     parser.on(:body) {|body| response.body = body}
     parser.on(:finished) do |remainder|
@@ -42,22 +42,5 @@ class Minevent::HTTP
     socket.on(:close) {@socket = nil}
     
     self
-  end
-end
-
-class Minevent::HTTPResponse
-  attr_reader :status, :message
-  attr_accessor :headers, :body
-  
-  def initialize(status, message, headers={}, body=nil)
-    @status, @message, @headers, @body = status, message, headers, body
-  end
-  
-  def inspect
-    "#<Response #{status} #{message}: #{body.to_s.length} bytes>"
-  end
-  
-  def to_s
-    body.to_s
   end
 end

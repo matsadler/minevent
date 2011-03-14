@@ -7,8 +7,7 @@ module Minevent
   autoload :Loop, require_base + 'loop'
   autoload :TCPServer, require_base + 'tcp_server'
   autoload :TCPSocket, require_base + 'tcp_socket'
-  autoload :HTTP, require_base + 'http/client'
-  autoload :HTTPResponse, require_base + 'http/client'
+  autoload :HTTP, require_base + 'http'
   
   def print; end; def printf; end; def putc; end; def puts; end # for docs
   methods = [:print, :printf, :putc, :puts]
