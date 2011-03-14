@@ -1,4 +1,5 @@
 autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
+require 'stringio'
 require 'rubygems'
 require 'events'
 
