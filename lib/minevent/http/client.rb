@@ -22,20 +22,22 @@ class Minevent::HTTP::Client
   private
   def request(method, path, request_body=nil, request_headers={}, response_has_body=true, &block)
     parser = HTTPTools::Parser.new
-    parser.allow_html_without_headers = true
+    parser.allow_html_without_header = true
     parser.force_no_body = !response_has_body
-    
     response = nil
-    parser.on(:status) {|s, m| response = Minevent::HTTP::Response.new(s, m)}
-    parser.on(:headers) {|headers| response.headers = headers}
-    parser.on(:body) {|body| response.body = body}
-    parser.on(:finished) do |remainder|
+    
+    parser.on(:header) do
+      code, message, header = parser.status_code, parser.message, parser.header
+      response = Minevent::HTTP::Response.new(code, message, header)
+    end
+    parser.on(:stream) {|chunk| response.body << chunk}
+    parser.on(:finish) do |remainder|
       socket.close unless keepalive?
       block.call(response)
     end
     
     socket << HTTPTools::Builder.request(method, @host, path, request_headers)
-    request_body.on(:data) {|data| socket << data} if request_body
+    socket << request_body if request_body
     
     socket.on(:data) {|data| parser << data}
     socket.on(:end) {parser.finish}

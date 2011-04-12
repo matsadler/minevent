@@ -4,7 +4,7 @@ class Minevent::HTTP::Response
   attr_reader :status, :message
   attr_accessor :headers, :body
   
-  def initialize(status, message, headers={}, body=nil)
+  def initialize(status, message, headers={}, body="")
     @status, @message, @headers, @body = status, message, headers, body
   end
   
