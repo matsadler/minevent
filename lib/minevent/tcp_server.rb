@@ -1,7 +1,7 @@
 autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
 autoload :TCPServer, 'socket'
 
-class Minevent::TCPServer < Minevent::BaseIO
+class Minevent::TCPServer < Minevent::IO
   set_real_class TCPServer
   
   def notify_readable # :nodoc:

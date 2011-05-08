@@ -1,6 +1,5 @@
 module Minevent
   require_base = File.dirname(__FILE__) + '/minevent/'
-  autoload :BaseIO, require_base + 'base_io'
   autoload :Buffer, require_base + 'buffer'
   autoload :File, require_base + 'file'
   autoload :IO, require_base + 'io'
