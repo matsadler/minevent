@@ -7,16 +7,18 @@ class Minevent::BaseIO < Events::EventEmitter
   attr_reader :real # :nodoc:
   attr_accessor :chunk_size, :buffer
   
-  def initialize(real)
-    @real = real
+  def initialize(*args)
+    real_class = self.class.real_class
+    @real = args.first.is_a?(real_class) ? args.first : real_class.new(*args)
     @write_queue = []
     self.chunk_size = 1024 * 4
     Minevent::Loop.add(self)
   end
   
-  def self.from(real, instance=allocate)
-    Minevent::BaseIO.instance_method(:initialize).bind(instance).call(real)
-    instance
+  class << self
+    attr_accessor :real_class
+    alias set_real_class real_class=
+    alias from new
   end
   
   def record_separator
