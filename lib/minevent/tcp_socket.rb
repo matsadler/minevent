@@ -1,8 +1,7 @@
-autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
-autoload :TCPSocket, 'socket'
+require 'socket'
 
 class Minevent::TCPSocket < Minevent::IO
-  set_real_class TCPSocket
+  set_io_class TCPSocket
   CHUNK_SIZE = 1024 * 16
   
   def initialize(*args)

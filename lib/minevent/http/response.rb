@@ -1,5 +1,3 @@
-autoload :Minevent, File.dirname(__FILE__) + '/../../minevent'
-
 class Minevent::HTTP::Response
   attr_reader :status, :message
   attr_accessor :headers, :body

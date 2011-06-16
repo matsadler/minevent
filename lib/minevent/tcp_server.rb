@@ -1,11 +1,10 @@
-autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
-autoload :TCPServer, 'socket'
+require 'socket'
 
 class Minevent::TCPServer < Minevent::IO
-  set_real_class TCPServer
+  set_io_class TCPServer
   
   def notify_readable # :nodoc:
-    connection = Minevent::TCPSocket.from(real.accept_nonblock)
+    connection = Minevent::TCPSocket.new(io.accept_nonblock)
     emit(:connection, connection)
   end
   

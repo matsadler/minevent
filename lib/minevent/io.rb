@@ -1,56 +1,41 @@
-autoload :Minevent, File.dirname(__FILE__) + '/../minevent'
 require 'stringio'
 require 'rubygems'
 require 'events'
 
 class Minevent::IO < Events::EventEmitter
-  attr_reader :real # :nodoc:
-  attr_accessor :chunk_size, :buffer
+  attr_reader :io # :nodoc:
+  alias to_io io # :nodoc:
+  attr_accessor :chunk_size
   
   def initialize(*args)
-    real_class = self.class.real_class
-    @real = args.first.is_a?(real_class) ? args.first : real_class.new(*args)
+    io_class = self.class.io_class
+    @io = args.first.is_a?(io_class) ? args.first : io_class.new(*args)
     @write_queue = []
     self.chunk_size = 1024 * 4
-    Minevent::Loop.add(self)
+    Minevent::Loop << self
   end
   
   class << self
-    attr_accessor :real_class
-    alias set_real_class real_class=
-    alias from new
+    attr_accessor :io_class
+    alias set_io_class io_class=
   end
   
-  set_real_class IO
-  
-  def record_separator
-    buffer.record_separator if buffer
-  end
-  
-  def record_separator=(value)
-    self.buffer = Minevent::Buffer.new(buffer ? buffer.string : "", value)
-  end
+  set_io_class IO
   
   def events
     [:data, :end, :error, :close]
   end
   
   def notify_readable # :nodoc:
-    if buffer
-      buffer << real.read_nonblock(chunk_size)
-      buffer.each {|data| emit(:data, data)}
-    else
-      emit(:data, real.read_nonblock(chunk_size))
-    end
+    emit(:data, io.read_nonblock(chunk_size))
   rescue EOFError
-    buffer.end {|data| emit(:data, data)} if buffer
     emit(:end)
     close
   end
   
   def notify_writeable # :nodoc:
     if data = @write_queue.shift
-      written = real.write_nonblock(data)
+      written = io.write_nonblock(data)
       remainder = data.slice(written..-1)
       @write_queue.unshift(remainder) unless remainder.empty?
     end
@@ -106,7 +91,7 @@ class Minevent::IO < Events::EventEmitter
   def real_close
     @closed = true
     Minevent::Loop.remove(self)
-    real.close unless real.closed?
+    io.close unless io.closed?
     emit(:close)
   end
   

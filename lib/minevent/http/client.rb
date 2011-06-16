@@ -1,4 +1,3 @@
-autoload :Minevent, File.dirname(__FILE__) + '/../../minevent'
 require 'rubygems'
 require 'http_tools'
 
