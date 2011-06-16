@@ -3,6 +3,8 @@ require 'socket'
 class Minevent::TCPServer < Minevent::IO
   set_io_class TCPServer
   
+  def_delegators :@io, :listen
+  
   def notify_readable # :nodoc:
     connection = Minevent::TCPSocket.new(io.accept_nonblock)
     emit(:connection, connection)

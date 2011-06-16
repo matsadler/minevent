@@ -1,8 +1,10 @@
 require 'stringio'
+require 'forwardable'
 require 'rubygems'
 require 'events'
 
 class Minevent::IO < Events::EventEmitter
+  extend Forwardable
   attr_reader :io # :nodoc:
   alias to_io io # :nodoc:
   attr_accessor :chunk_size
