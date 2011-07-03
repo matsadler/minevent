@@ -29,21 +29,30 @@ class Minevent::IO < Events::EventEmitter
   end
   
   def notify_readable # :nodoc:
-    emit(:data, io.read_nonblock(chunk_size))
-  rescue EOFError
-    emit(:end)
-    close
+    begin
+      data = io.read_nonblock(chunk_size)
+    rescue EOFError
+      emit(:end)
+      close
+    rescue StandardError => e
+      emit(:error, e)
+    end
+    emit(:data, data) if data
   end
   
   def notify_writeable # :nodoc:
     if data = @write_queue.shift
-      written = io.write_nonblock(data)
+      begin
+        written = io.write_nonblock(data)
+      rescue StandardError => e
+        if @closing && e.is_a?(Errno::EPIPE) then return real_close end
+        written = 0
+        emit(:error, e)
+      end
       remainder = data.slice(written..-1)
       @write_queue.unshift(remainder) unless remainder.empty?
     end
     real_close if @closing && !pending_write?
-  rescue Errno::EPIPE
-    if @closing then real_close else raise end
   end
   
   def write(data)
