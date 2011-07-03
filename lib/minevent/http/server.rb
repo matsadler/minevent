@@ -1,4 +1,3 @@
-require 'stringio'
 require 'rubygems'
 require 'http_tools'
 require 'events'
@@ -12,14 +11,23 @@ class Minevent::HTTP::Server
   CLOSE = "close".freeze
   ONE_ONE = "1.1".freeze
   
+  class AsyncInput < Events::EventEmitter
+    def <<(data)
+      emit(:data, data)
+    end
+    
+    def finish # :nodoc: internal
+      emit(:end)
+    end
+  end
+  
   class AsyncResponse < Events::EventEmitter
-    attr_accessor :status, :header, :id, :pipeline, :keep_alive
-    def initialize(id, pipeline, keep_alive=true)
+    attr_accessor :status, :header, :id, :pipeline
+    def initialize(id, pipeline)
       @status = 200
       @header = {}
       @id = id
       @pipeline = pipeline
-      @keep_alive = keep_alive
     end
     
     def <<(data)
@@ -33,20 +41,19 @@ class Minevent::HTTP::Server
       do_finish
     end
     
-    def header_done
-      unless @header_emitted
-        header[CONNECTION] = keep_alive ? KEEP_ALIVE : CLOSE
-        pipeline.write(id, HTTPTools::Builder.response(status, header))
-      end
-      @header_emitted = true
-    end
-    
-    def request_finished
+    def request_finish # :nodoc: internal
       @request_finished = true
       do_finish
     end
     
     private
+    def header_done
+      unless @header_emitted
+        pipeline.write(id, HTTPTools::Builder.response(status, header))
+      end
+      @header_emitted = true
+    end
+    
     def do_finish
       if @response_finished && @request_finished
         pipeline.close(id)
@@ -85,10 +92,6 @@ class Minevent::HTTP::Server
     host = options[:host] || options[:Host] || "0.0.0.0"
     port = (options[:port] || options[:Port] || 9292).to_s
     @app = app
-    error_stream = Minevent::IO.new(STDERR)
-    def error_stream.flush
-    end
-    @instance_env = {"rack.errors" => error_stream}
     @server = Minevent::TCPServer.new(host, port)
     @server.listen(1024)
   end
@@ -103,32 +106,34 @@ class Minevent::HTTP::Server
       pipeline = Pipeline.new(socket)
       request_count = -1
       input, response = nil
+      remote_addr = socket.peeraddr.last
       
       parser.on(:header) do
-        input = StringIO.new
-        env = parser.env.merge!(
-          HTTP_VERSION => parser.version,
-          REMOTE_ADDR => socket.peeraddr.last,
-          RACK_INPUT => input).merge!(@instance_env)
+        input = AsyncInput.new
+        env = parser.env.merge!(HTTP_VERSION => parser.version,
+          REMOTE_ADDR => remote_addr, RACK_INPUT => input)
         keep_alive = keep_alive?(parser.version, parser.header[CONNECTION])
-        response = AsyncResponse.new(request_count += 1, pipeline, keep_alive)
-        response.on(:finish) do
-          if keep_alive
-            Minevent.defer do
-              remainder = parser.rest.lstrip
-              parser.reset << remainder
-            end
-          else
-            socket.close
-          end
-        end
+        response = AsyncResponse.new(request_count += 1, pipeline)
+        response.header[CONNECTION] = keep_alive ? KEEP_ALIVE : CLOSE
         @app.call(env, response)
       end
       parser.on(:stream) {|chunk| input << chunk}
-      parser.on(:finish) {response.request_finished}
+      parser.on(:finish) do
+        input.finish
+        if keep_alive?(parser.version, response.header[CONNECTION])
+          Minevent.defer do
+            remainder = parser.rest.lstrip
+            parser.reset << remainder
+          end
+        else
+          response.on(:finish) {socket.close}
+        end
+        response.request_finish
+      end
       parser.on(:error) {socket.close}
       
       socket.on(:data) {|data| parser << data}
+      socket.on(:error) {|e| socket.close}
     end
     self
   end

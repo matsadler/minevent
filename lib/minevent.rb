@@ -6,6 +6,7 @@ module Minevent
   autoload :TCPSocket, require_base + 'tcp_socket'
   HTTP = Module.new
   HTTP.autoload :Client, require_base + 'http/client'
+  HTTP.autoload :Rack, require_base + 'http/rack'
   HTTP.autoload :Response, require_base + 'http/response'
   HTTP.autoload :Server, require_base + 'http/server'
   
