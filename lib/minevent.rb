@@ -1,14 +1,12 @@
 module Minevent
-  require_base = File.dirname(__FILE__) + '/minevent/'
-  autoload :IO, require_base + 'io'
-  autoload :Loop, require_base + 'loop'
-  autoload :TCPServer, require_base + 'tcp_server'
-  autoload :TCPSocket, require_base + 'tcp_socket'
   HTTP = Module.new
-  HTTP.autoload :Client, require_base + 'http/client'
-  HTTP.autoload :Rack, require_base + 'http/rack'
-  HTTP.autoload :Response, require_base + 'http/response'
-  HTTP.autoload :Server, require_base + 'http/server'
+  
+  require_base = File.expand_path("../minevent", __FILE__)
+  libs = %W{io loop tcp_server tcp_socket http/client http/rack http/response
+    http/server}
+  libs.each do |lib|
+    require [require_base, lib].join("/")
+  end
   
   def print; end; def printf; end; def putc; end; def puts; end # for docs
   methods = [:print, :printf, :putc, :puts]
