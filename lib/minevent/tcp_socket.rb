@@ -2,6 +2,7 @@ require 'socket'
 
 class Minevent::TCPSocket < Minevent::IO
   set_io_class TCPSocket
+  EVENTS = (superclass::EVENTS + [:connect]).freeze
   CHUNK_SIZE = 1024 * 16
   
   def_delegators :@io, :peeraddr
@@ -10,10 +11,6 @@ class Minevent::TCPSocket < Minevent::IO
     super
     self.chunk_size = CHUNK_SIZE
     Minevent.defer {emit(:connect)}
-  end
-  
-  def events
-    super + [:connect]
   end
   
 end

@@ -4,6 +4,8 @@ require 'rubygems'
 require 'events'
 
 class Minevent::IO < Events::EventEmitter
+  EVENTS = [:data, :end, :error, :close].freeze
+  
   extend Forwardable
   attr_reader :io # :nodoc:
   alias to_io io # :nodoc:
@@ -23,10 +25,6 @@ class Minevent::IO < Events::EventEmitter
   end
   
   set_io_class IO
-  
-  def events
-    [:data, :end, :error, :close]
-  end
   
   def notify_readable # :nodoc:
     begin
@@ -81,7 +79,7 @@ class Minevent::IO < Events::EventEmitter
   end
   
   def listeners? # :nodoc:
-    events.find {|event| listeners(event).any?}
+    self.class::EVENTS.find {|event| listeners(event).any?}
   end
   
   def closed?
