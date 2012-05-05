@@ -7,7 +7,7 @@ class Minevent::TCPServer < Minevent::IO
   def_delegators :@io, :listen
   
   def notify_readable # :nodoc:
-    connection = Minevent::TCPSocket.new(io.accept_nonblock)
+    connection = Minevent::TCPSocket.for_io(io.accept_nonblock, true)
     emit(:connection, connection)
   end
   

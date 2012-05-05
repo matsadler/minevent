@@ -22,7 +22,7 @@ module Minevent::Loop
     def run(timeout=0.25)
       yield if block_given?
       while connections.any? {|c| c.active?}
-        readable, writeable = if connections.any? {|c| c.pending_write?}
+        readable, writeable = if connections.any? {|c| c.check_writeable?}
           select(connections, connections, nil, timeout)
         else
           select(connections, nil, nil, timeout)

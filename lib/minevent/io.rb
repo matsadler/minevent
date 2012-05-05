@@ -12,11 +12,21 @@ class Minevent::IO < Events::EventEmitter
   attr_accessor :chunk_size
   
   def initialize(*args)
-    io_class = self.class.io_class
-    @io = args.first.is_a?(io_class) ? args.first : io_class.new(*args)
+    initialize_with_io(self.class.io_class.new(*args))
+  end
+  
+  def initialize_with_io(io)
+    @io = io
     @write_queue = []
     self.chunk_size = 1024 * 4
     Minevent::Loop << self
+  end
+  private :initialize_with_io
+  
+  def self.for_io(*args)
+    instance = allocate
+    instance.instance_eval {initialize_with_io(*args)}
+    instance
   end
   
   class << self
@@ -77,6 +87,7 @@ class Minevent::IO < Events::EventEmitter
   def pending_write? # :nodoc:
     @write_queue.any?
   end
+  alias check_writeable? pending_write?
   
   def listeners? # :nodoc:
     self.class::EVENTS.find {|event| listeners(event).any?}
